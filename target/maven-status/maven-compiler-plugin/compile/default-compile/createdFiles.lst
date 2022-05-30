@@ -1,0 +1,7 @@
+com\youtube\amigoscode\springsecuritylearning\configuration\ApplicationSecurityConfiguration.class
+com\youtube\amigoscode\springsecuritylearning\configuration\ApplicationUserRole.class
+com\youtube\amigoscode\springsecuritylearning\configuration\AplicationUserPermission.class
+com\youtube\amigoscode\springsecuritylearning\SpringSecurityLearningApplication.class
+com\youtube\amigoscode\springsecuritylearning\model\Student\java\Student.class
+com\youtube\amigoscode\springsecuritylearning\controller\StudentController.class
+com\youtube\amigoscode\springsecuritylearning\configuration\PasswordConfiguration.class
