@@ -1,5 +1,9 @@
 package com.youtube.amigoscode.springsecuritylearning.configuration;
 
+import static com.youtube.amigoscode.springsecuritylearning.configuration.AplicationUserPermission.STUDENT_WRITE;
+import static com.youtube.amigoscode.springsecuritylearning.configuration.ApplicationUserRole.*;
+import static org.springframework.http.HttpMethod.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,9 +26,23 @@ public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapt
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.authorizeRequests()
+		http
+				.csrf().disable()
+				.headers().frameOptions().disable()
+				.and()
+				.authorizeRequests()
 				.antMatchers("/", "index", "/css/*", "/js/*")
 				.permitAll()
+				.antMatchers("/api/**")
+				.hasRole(STUDENT.name())
+				.antMatchers(DELETE, "/management/api/**")
+				.hasAuthority(STUDENT_WRITE.getPermission())
+				.antMatchers(POST, "/management/api/**")
+				.hasAuthority(STUDENT_WRITE.getPermission())
+				.antMatchers(PUT, "/management/api/**")
+				.hasAuthority(STUDENT_WRITE.getPermission())
+				.antMatchers(GET, "/management/api/**")
+				.hasAnyRole(ADMIN.name(), ADMINTRAINEE.name())
 				.anyRequest()
 				.authenticated()
 				.and()
@@ -37,13 +55,21 @@ public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapt
 		UserDetails annaSmithUser = User.builder()
 				.username("annasmith")
 				.password(passwordEncoder.encode("password"))
-				.roles(ApplicationUserRole.STUDENT.name())
+				.authorities(STUDENT.getAuthorities())
 				.build();
 		UserDetails lindaUser = User.builder()
 				.username("linda")
 				.password(passwordEncoder.encode("password"))
-				.roles(ApplicationUserRole.ADMIN.name())
+				.authorities(ADMIN.getAuthorities())
 				.build();
-		return new InMemoryUserDetailsManager(annaSmithUser, lindaUser);
+		UserDetails tomUser = User.builder()
+				.username("tom")
+				.password(passwordEncoder.encode("password"))
+				.authorities(ADMINTRAINEE.getAuthorities())
+				.build();
+		return new InMemoryUserDetailsManager(
+				annaSmithUser,
+				lindaUser,
+				tomUser);
 	}
 }
