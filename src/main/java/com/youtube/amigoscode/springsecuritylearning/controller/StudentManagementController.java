@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.youtube.amigoscode.springsecuritylearning.configuration.ApplicationUserRole;
 import com.youtube.amigoscode.springsecuritylearning.model.Student.java.Student;
 
 @RestController
@@ -28,18 +30,20 @@ public class StudentManagementController {
 					new Student(3, "Anna Smith")));
 
 	@GetMapping
-	@PreAuthorize(value = "")
+	@PreAuthorize("hasAnyRole ('ROLE_ADMIN','ROLE_ADMINTRAINEE')")
 	public static List<Student> getStudents() {
 		return STUDENTS;
 	}
 
 	@PostMapping
+	@PreAuthorize("hasAuthority('student:write')")
 	public void registerStudent(@RequestBody Student student) {
 		System.out.println("register student: " + student);
 		STUDENTS.add(student);
 	}
 
 	@DeleteMapping(path = "/{studentId}")
+	@PreAuthorize("hasAuthority('student:write')")
 	public void deleteStudent(@PathVariable Integer studentId) {
 		System.out.println("delete student with id: " + studentId);
 		Optional<Student> found = STUDENTS.stream()
@@ -49,6 +53,7 @@ public class StudentManagementController {
 	}
 
 	@PutMapping(path = "/{studentId}")
+	@PreAuthorize("hasAuthority('student:write')")
 	public void updateStudent(@PathVariable Integer studentId, @RequestBody Student student) {
 		System.out.println("update student: " + student + " with id: " + studentId);
 		STUDENTS.stream()
