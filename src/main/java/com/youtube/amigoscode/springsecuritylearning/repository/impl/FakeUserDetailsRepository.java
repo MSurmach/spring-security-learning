@@ -20,33 +20,37 @@ import com.youtube.amigoscode.springsecuritylearning.repository.ApplicationUserD
 @Repository
 public class FakeUserDetailsRepository implements ApplicationUserDetailsRepository {
 
-	private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final Set<UserDetails> userDetailsInMemory;
 
-	@Autowired
-	public FakeUserDetailsRepository(PasswordEncoder passwordEncoder) {
-		this.passwordEncoder = passwordEncoder;
-	}
+    public FakeUserDetailsRepository(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+        userDetailsInMemory = initFakeMemoryDB();
+    }
 
-	@Override
-	public Optional<UserDetails> loadUserByUserName(String username) {
-		return usersInMemory.stream().filter(userDetails -> userDetails.getUsername().equals(username)).findFirst();
-	}
+    @Override
+    public Optional<UserDetails> loadUserByUserName(String username) {
+        return userDetailsInMemory.stream()
+                .filter(userDetails -> userDetails.getUsername().equals(username)).findFirst();
+    }
 
-	private final Set<UserDetails> usersInMemory = Stream.of(
-			User.builder()
-					.username("annasmith")
-					.password(passwordEncoder.encode("password"))
-					.authorities(STUDENT.getAuthorities())
-					.build(),
-			User.builder()
-					.username("linda")
-					.password(passwordEncoder.encode("password"))
-					.authorities(ADMIN.getAuthorities())
-					.build(),
-			User.builder()
-					.username("tom")
-					.password(passwordEncoder.encode("password"))
-					.authorities(ADMINTRAINEE.getAuthorities())
-					.build())
-			.collect(Collectors.toSet());
+    private Set<UserDetails> initFakeMemoryDB() {
+        return Stream.of(
+                        User.builder()
+                                .username("annasmith")
+                                .password(passwordEncoder.encode("password"))
+                                .authorities(STUDENT.getAuthorities())
+                                .build(),
+                        User.builder()
+                                .username("linda")
+                                .password(passwordEncoder.encode("password"))
+                                .authorities(ADMIN.getAuthorities())
+                                .build(),
+                        User.builder()
+                                .username("tom")
+                                .password(passwordEncoder.encode("password"))
+                                .authorities(ADMINTRAINEE.getAuthorities())
+                                .build())
+                .collect(Collectors.toSet());
+    }
 }

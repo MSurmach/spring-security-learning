@@ -13,7 +13,6 @@ public class ApplicationUserDetailsService implements UserDetailsService {
 
 	private ApplicationUserDetailsRepository userDetailsRepository;
 
-	@Autowired
 	public ApplicationUserDetailsService(ApplicationUserDetailsRepository userDetailsRepository) {
 		this.userDetailsRepository = userDetailsRepository;
 	}
