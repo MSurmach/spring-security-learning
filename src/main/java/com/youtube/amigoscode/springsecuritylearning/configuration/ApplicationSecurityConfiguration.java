@@ -1,23 +1,20 @@
 package com.youtube.amigoscode.springsecuritylearning.configuration;
 
-import static com.youtube.amigoscode.springsecuritylearning.configuration.AplicationUserPermission.STUDENT_WRITE;
-import static com.youtube.amigoscode.springsecuritylearning.configuration.ApplicationUserRole.*;
-import static org.springframework.http.HttpMethod.*;
+import static com.youtube.amigoscode.springsecuritylearning.configuration.ApplicationUserRole.STUDENT;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @SuppressWarnings("deprecation")
 @Configuration
@@ -26,7 +23,7 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	@Autowired
-	private PasswordEncoder passwordEncoder;
+	private UserDetailsService userDetailsService;
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -45,30 +42,31 @@ public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapt
 				.permitAll()
 				.defaultSuccessUrl("/courses", true)
 				.and()
-				.rememberMe();
+				.rememberMe()
+				.and()
+				.logout()
+				.logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
+				.clearAuthentication(true)
+				.invalidateHttpSession(true)
+				.deleteCookies("remeber-me", "JSESSIONID")
+				.logoutSuccessUrl("/login");
 	}
 
 	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.authenticationProvider(authenticationProvider());
+	}
+
 	@Bean
-	protected UserDetailsService userDetailsService() {
-		UserDetails annaSmithUser = User.builder()
-				.username("annasmith")
-				.password(passwordEncoder.encode("password"))
-				.authorities(STUDENT.getAuthorities())
-				.build();
-		UserDetails lindaUser = User.builder()
-				.username("linda")
-				.password(passwordEncoder.encode("password"))
-				.authorities(ADMIN.getAuthorities())
-				.build();
-		UserDetails tomUser = User.builder()
-				.username("tom")
-				.password(passwordEncoder.encode("password"))
-				.authorities(ADMINTRAINEE.getAuthorities())
-				.build();
-		return new InMemoryUserDetailsManager(
-				annaSmithUser,
-				lindaUser,
-				tomUser);
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public DaoAuthenticationProvider authenticationProvider() {
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+		provider.setPasswordEncoder(passwordEncoder());
+		provider.setUserDetailsService(userDetailsService);
+		return provider;
 	}
 }
